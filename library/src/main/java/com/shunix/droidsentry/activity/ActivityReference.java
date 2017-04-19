@@ -1,5 +1,7 @@
 package com.shunix.droidsentry.activity;
 
+import android.app.Activity;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 
@@ -8,7 +10,7 @@ import java.lang.ref.WeakReference;
  * @since 2017/4/10
  */
 
-final class ActivityReference<T> extends WeakReference<T> {
+final class ActivityReference extends WeakReference<Activity> {
     final static class ActivityKey {
         private String mActivityName;
         private String mIdentity;
@@ -29,11 +31,21 @@ final class ActivityReference<T> extends WeakReference<T> {
 
     private ActivityKey mKey;
 
-    ActivityReference(ActivityKey key, T referent, ReferenceQueue queue) {
+    ActivityReference(ActivityKey key, Activity referent, ReferenceQueue queue) {
         super(referent, queue);
         if (referent == null || queue == null) {
             throw new IllegalArgumentException("Referent and ReferenceQueue cannot be empty");
         }
         mKey = key;
+    }
+
+    @Override
+    public int hashCode() {
+        return mKey.mActivityName.hashCode() * 31 + mKey.mIdentity.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return hashCode() == o.hashCode();
     }
 }
