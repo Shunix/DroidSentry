@@ -65,11 +65,14 @@ public final class ActivityMonitor {
         }
     }
 
+    private ActivityLifecycleMonitor mCallbacks;
     private ReferenceQueue<Activity> mReferenceQueue;
     private ExecutorService mExecutorService;
     private Set<ActivityReference> mActivityReferenceSet;
+    private LeakHandler mLeakHandler;
 
     private ActivityMonitor() {
+        mCallbacks = new ActivityLifecycleMonitor();
         mReferenceQueue = new ReferenceQueue<>();
         mExecutorService = Executors.newSingleThreadExecutor();
         mActivityReferenceSet = new CopyOnWriteArraySet<>();
@@ -80,7 +83,13 @@ public final class ActivityMonitor {
     }
 
     public void monitor(Application application) {
-        application.registerActivityLifecycleCallbacks(new ActivityLifecycleMonitor());
+        application.registerActivityLifecycleCallbacks(mCallbacks);
+        mLeakHandler = new LeakHandler(application);
+    }
+
+    public void stop(Application application) {
+        application.unregisterActivityLifecycleCallbacks(mCallbacks);
+        mLeakHandler.destory();
     }
 
     private ActivityReference enqueueActivityReference(Activity activity) {
@@ -112,5 +121,6 @@ public final class ActivityMonitor {
 
     private void reportLeakedActivity() {
         // TODO
+        mLeakHandler.requestHeapDump();
     }
 }
