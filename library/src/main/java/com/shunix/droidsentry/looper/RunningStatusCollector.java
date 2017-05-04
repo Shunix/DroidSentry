@@ -35,13 +35,7 @@ final class RunningStatusCollector {
         return null;
     }
 
-    private boolean persistStackTrace(StackTraceElement[] elements) {
-        boolean result = true;
-        if (elements != null && elements.length > 0) {
-            for (StackTraceElement element : elements) {
-                result &= SentryLog.logStackTrace(element.toString());
-            }
-        }
-        return result;
+    private void persistStackTrace(StackTraceElement[] elements) {
+        SentryLog.persistStackTraces(elements);
     }
 }

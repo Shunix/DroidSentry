@@ -52,7 +52,10 @@ final class LeakHandler {
             @Override
             public void run() {
                 try {
-                    Debug.dumpHprofData(getDumpFilePath());
+                    String dumpFilePath = getDumpFilePath();
+                    if (dumpFilePath != null) {
+                        Debug.dumpHprofData(dumpFilePath);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -60,7 +63,7 @@ final class LeakHandler {
         });
     }
 
-    public void destory() {
+    public void destroy() {
         mExecutor.shutdown();
     }
 }

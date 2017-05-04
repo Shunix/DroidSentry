@@ -89,7 +89,7 @@ public final class ActivityMonitor {
 
     public void stop(Application application) {
         application.unregisterActivityLifecycleCallbacks(mCallbacks);
-        mLeakHandler.destory();
+        mLeakHandler.destroy();
     }
 
     private ActivityReference enqueueActivityReference(Activity activity) {
