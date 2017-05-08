@@ -30,7 +30,6 @@ final class ActivityMonitorCompat extends BaseActivityMonitor {
 
     @Override
     protected void monitor(Application application) {
-        super.monitor(application);
         // Save original instrumentation first
         saveOriginalInstrumentation();
         // Replace instrumentation with custom one

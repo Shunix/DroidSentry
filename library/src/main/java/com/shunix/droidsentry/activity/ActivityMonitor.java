@@ -9,7 +9,7 @@ import android.os.Build;
  * @since 2017/5/5
  */
 
-final class ActivityMonitor {
+public final class ActivityMonitor {
     private static ActivityMonitor sInstance;
     private BaseActivityMonitor mMonitor;
 

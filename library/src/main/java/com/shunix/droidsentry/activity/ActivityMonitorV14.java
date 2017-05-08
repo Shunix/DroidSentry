@@ -60,7 +60,6 @@ final class ActivityMonitorV14 extends BaseActivityMonitor {
 
     @Override
     protected void monitor(Application application) {
-        super.monitor(application);
         application.registerActivityLifecycleCallbacks(mCallbacks);
     }
 }

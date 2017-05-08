@@ -3,6 +3,8 @@ package com.shunix.droidsentry.activity;
 import android.app.Activity;
 import android.app.Application;
 
+import com.shunix.droidsentry.log.SentryLog;
+
 import java.lang.ref.ReferenceQueue;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -18,7 +20,6 @@ abstract class BaseActivityMonitor {
     private ReferenceQueue<Activity> mReferenceQueue;
     private ExecutorService mExecutorService;
     private Set<ActivityReference> mActivityReferenceSet;
-    private LeakHandler mLeakHandler;
 
     BaseActivityMonitor() {
         mReferenceQueue = new ReferenceQueue<>();
@@ -54,17 +55,14 @@ abstract class BaseActivityMonitor {
     }
 
     private void reportLeakedActivity() {
-        mLeakHandler.requestHeapDump();
+        SentryLog.requestHeapDump();
     }
 
-    protected void monitor(Application application) {
-        mLeakHandler = new LeakHandler(application);
-    }
+    abstract void monitor(Application application);
 
     protected void stop(Application application) {
         mExecutorService.shutdown();
         mActivityReferenceSet.clear();
-        mLeakHandler.destroy();
     }
 
     void checkLeakedActivity(final Activity activity) {
