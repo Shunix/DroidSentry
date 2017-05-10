@@ -14,7 +14,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         LooperMonitor.init();
-        SentryLog.setContext(getApplication());
         for (int i = 0; i < 100; ++i) {
             SentryLog.log(MainActivity.class.getSimpleName(), SentryLog.WARNING, "红红火火恍恍惚惚" + i);
         }

@@ -1,4 +1,4 @@
-package com.shunix.droidsentry.provider;
+package com.shunix.droidsentrytest.provider;
 
 import android.app.Application;
 import android.content.ContentProvider;

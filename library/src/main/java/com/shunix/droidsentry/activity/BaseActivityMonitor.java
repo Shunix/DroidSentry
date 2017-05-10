@@ -2,6 +2,7 @@ package com.shunix.droidsentry.activity;
 
 import android.app.Activity;
 import android.app.Application;
+import android.os.Debug;
 
 import com.shunix.droidsentry.log.SentryLog;
 
@@ -55,7 +56,9 @@ abstract class BaseActivityMonitor {
     }
 
     private void reportLeakedActivity() {
-        SentryLog.requestHeapDump();
+        if (!Debug.isDebuggerConnected()) {
+            SentryLog.requestHeapDump();
+        }
     }
 
     abstract void monitor(Application application);
