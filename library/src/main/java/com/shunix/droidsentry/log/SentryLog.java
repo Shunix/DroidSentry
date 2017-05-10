@@ -14,10 +14,11 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +32,7 @@ public final class SentryLog {
     public final static int INFO = 1;
     public final static int WARNING = 2;
     public final static int ERROR = 3;
-    private final static int MAX_LOG_ITEM = 1000;
+    private final static int MAX_LOG_ITEM = 500;
     private final static String STACKTRACE_FILE_DIRECTORY = "stacktraces/";
     private final static String STACKTRACE_FILENAME_PATTERN = "stacktraces-%1$ty.%1$tm.%1$te-%1$tk.%1$tM.%1$tS.log";
     private final static String DUMP_FILE_DIRECTORY = "heapdump/";
@@ -42,14 +43,14 @@ public final class SentryLog {
     private static ExecutorService mStackTracePersistExecutor;
     private static ExecutorService mDumpExecutor;
     private static ExecutorService mLogWriterExecutor;
-    private static ConcurrentHashMap<Integer, String> mLogs;
+    private static Map<Integer, String> mLogs;
     private static DateFormat mFormatter;
 
     static {
         mStackTracePersistExecutor = Executors.newSingleThreadExecutor();
         mDumpExecutor = Executors.newSingleThreadExecutor();
         mLogWriterExecutor = Executors.newSingleThreadExecutor();
-        mLogs = new ConcurrentHashMap<>();
+        mLogs = Collections.synchronizedMap(new LinkedHashMap<Integer, String>());
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
@@ -76,7 +77,7 @@ public final class SentryLog {
     }
 
     private static void syncLog() {
-        final ConcurrentHashMap<Integer, String> mCache = new ConcurrentHashMap<>(mLogs);
+        final LinkedHashMap<Integer, String> mCache = new LinkedHashMap<>(mLogs);
         mLogs.clear();
         mLogWriterExecutor.execute(new Runnable() {
             @Override

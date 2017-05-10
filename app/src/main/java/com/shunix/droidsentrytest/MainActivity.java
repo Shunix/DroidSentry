@@ -15,8 +15,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         LooperMonitor.init();
         SentryLog.setContext(getApplication());
-        for (int i = 0; i < 10; ++i) {
-            SentryLog.log(MainActivity.class.getSimpleName(), SentryLog.WARNING, "红红火火恍恍惚惚");
+        for (int i = 0; i < 100; ++i) {
+            SentryLog.log(MainActivity.class.getSimpleName(), SentryLog.WARNING, "红红火火恍恍惚惚" + i);
         }
 //        final Handler handler = new Handler();
 //        handler.postDelayed(new Runnable() {
