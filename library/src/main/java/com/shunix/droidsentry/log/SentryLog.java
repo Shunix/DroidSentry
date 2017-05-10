@@ -33,7 +33,7 @@ public final class SentryLog {
     public final static int ERROR = 3;
     private final static int MAX_LOG_ITEM = 1000;
     private final static String STACKTRACE_FILE_DIRECTORY = "stacktraces/";
-    private final static String STACKTRACE_FILENAME_PATTERN = "stacktraces-%1$ty.%1$tm.%1$te-%1$tk.%1$tM.%1$tS.hprof";
+    private final static String STACKTRACE_FILENAME_PATTERN = "stacktraces-%1$ty.%1$tm.%1$te-%1$tk.%1$tM.%1$tS.log";
     private final static String DUMP_FILE_DIRECTORY = "heapdump/";
     private final static String DUMP_FILENAME_PATTERN = "heapdump-%1$ty.%1$tm.%1$te-%1$tk.%1$tM.%1$tS.hprof";
     private final static String LOG_ITEM_PATTERN = "%1$s|%2$s|%3$s|%4$s";
@@ -70,7 +70,7 @@ public final class SentryLog {
         if (mLogs.size() >= MAX_LOG_ITEM) {
             syncLog();
         }
-        String logMsg = String.format(LOG_ITEM_PATTERN, getDisplayTime(), level, level, msg);
+        String logMsg = String.format(LOG_ITEM_PATTERN, getDisplayTime(), tag, level, msg);
         int hashCode = logMsg.hashCode();
         mLogs.put(hashCode, logMsg);
     }
