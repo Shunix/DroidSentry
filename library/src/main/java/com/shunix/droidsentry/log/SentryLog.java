@@ -4,6 +4,8 @@ package com.shunix.droidsentry.log;
 import android.app.Application;
 import android.os.Debug;
 import android.os.Environment;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -59,12 +61,13 @@ public final class SentryLog {
 
     /**
      * log message should not contain '\n' or '\'
+     *
      * @param tag
      * @param level
      * @param msg
      */
     public static void log(String tag, @LogLevel int level, String msg) {
-        if (mLogs.size() >= MAX_LOG_ITEM ) {
+        if (mLogs.size() >= MAX_LOG_ITEM) {
             syncLog();
         }
         String logMsg = String.format(LOG_ITEM_PATTERN, getDisplayTime(), level, level, msg);
@@ -72,7 +75,7 @@ public final class SentryLog {
         mLogs.put(hashCode, logMsg);
     }
 
-    public static void syncLog() {
+    private static void syncLog() {
         final ConcurrentHashMap<Integer, String> mCache = new ConcurrentHashMap<>(mLogs);
         mLogs.clear();
         mLogWriterExecutor.execute(new Runnable() {
@@ -84,21 +87,37 @@ public final class SentryLog {
     }
 
     private static void writeLogsToFile(Map<Integer, String> map) {
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            File packageRootDir = mApp.getExternalFilesDir(null);
-            if (packageRootDir != null) {
-                File logFile = new File(packageRootDir, LOG_FILENAME);
+        File logFile = getFileWithCheck(null, LOG_FILENAME);
+        if (logFile != null) {
+            if (!logFile.exists()) {
                 try {
-                    if (!logFile.exists()) {
-                        logFile.createNewFile();
+                    if (!logFile.createNewFile()) {
+                        return;
                     }
-                    FileWriter fileWriter = new FileWriter(logFile, true);
-                    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-                    for (Map.Entry<Integer, String> entry : map.entrySet()) {
-                        bufferedWriter.write(entry.getValue());
-                        bufferedWriter.newLine();
+                } catch (IOException e) {
+
+                }
+            }
+            FileWriter fileWriter = null;
+            BufferedWriter bufferedWriter = null;
+            try {
+                fileWriter = new FileWriter(logFile, true);
+                bufferedWriter = new BufferedWriter(fileWriter);
+                for (Map.Entry<Integer, String> entry : map.entrySet()) {
+                    bufferedWriter.write(entry.getValue());
+                    bufferedWriter.newLine();
+                }
+                bufferedWriter.flush();
+            } catch (IOException e) {
+
+            } finally {
+                try {
+                    if (bufferedWriter != null) {
+                        bufferedWriter.close();
                     }
-                    bufferedWriter.flush();
+                    if (fileWriter != null) {
+                        fileWriter.close();
+                    }
                 } catch (IOException e) {
 
                 }
@@ -118,22 +137,30 @@ public final class SentryLog {
             public void run() {
                 if (mApp != null && elements != null && elements.length > 0) {
                     File stackTracesFile = getStackTracesFile();
-                    if (stackTracesFile.exists()) {
-                        stackTracesFile.delete();
-                    } else {
+                    if (stackTracesFile != null) {
+                        FileWriter fileWriter = null;
+                        BufferedWriter bufferedWriter = null;
                         try {
-                            boolean ret = stackTracesFile.createNewFile();
-                            if (ret) {
-                                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(stackTracesFile));
-                                for (StackTraceElement element : elements) {
-                                    bufferedWriter.write(element.toString());
-                                    bufferedWriter.newLine();
-                                }
-                                bufferedWriter.flush();
-                                bufferedWriter.close();
+                            fileWriter = new FileWriter(stackTracesFile);
+                            bufferedWriter = new BufferedWriter(fileWriter);
+                            for (StackTraceElement element : elements) {
+                                bufferedWriter.write(element.toString());
+                                bufferedWriter.newLine();
                             }
+                            bufferedWriter.flush();
                         } catch (IOException e) {
 
+                        } finally {
+                            try {
+                                if (bufferedWriter != null) {
+                                    bufferedWriter.close();
+                                }
+                                if (fileWriter != null) {
+                                    fileWriter.close();
+                                }
+                            } catch (IOException e) {
+
+                            }
                         }
                     }
                 }
@@ -141,37 +168,52 @@ public final class SentryLog {
         });
     }
 
+    @Nullable
     private static File getStackTracesFile() {
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            File packageRootDir = mApp.getExternalFilesDir(null);
-            if (packageRootDir != null) {
-                File traceFileDir = new File(packageRootDir, STACKTRACE_FILE_DIRECTORY);
-                if (!traceFileDir.exists()) {
-                    boolean result = traceFileDir.mkdir();
-                    if (result) {
-                        String fileName = String.format(Locale.getDefault(), STACKTRACE_FILENAME_PATTERN, Calendar.getInstance());
-                        return new File(traceFileDir, fileName);
-                    }
-                }
-            }
+        String fileName = String.format(Locale.getDefault(), STACKTRACE_FILENAME_PATTERN, Calendar.getInstance());
+        return getFileWithCheck(STACKTRACE_FILE_DIRECTORY, fileName);
+    }
+
+    @Nullable
+    private static String getDumpFilePath() {
+        String fileName = String.format(Locale.getDefault(), DUMP_FILENAME_PATTERN, Calendar.getInstance());
+        File hprofFile = getFileWithCheck(DUMP_FILE_DIRECTORY, fileName);
+        if (hprofFile != null) {
+            return hprofFile.getAbsolutePath();
         }
         return null;
     }
 
-    private static String getDumpFilePath() {
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            File packageRootDir = mApp.getExternalFilesDir(null);
-            if (packageRootDir != null) {
-                File dumpFileDir = new File(packageRootDir, DUMP_FILE_DIRECTORY);
-                if (!dumpFileDir.exists()) {
-                    boolean result = dumpFileDir.mkdir();
-                    if (result) {
-                        String fileName = String.format(Locale.getDefault(), DUMP_FILENAME_PATTERN, Calendar.getInstance());
-                        File hprofFile = new File(dumpFileDir, fileName);
-                        return hprofFile.getAbsolutePath();
+    /**
+     * Return a file on external storage
+     *
+     * @param dirName  pass null to create file under the root of package directory
+     * @param fileName
+     * @return
+     */
+    @Nullable
+    private static File getFileWithCheck(@Nullable String dirName, String fileName) {
+        try {
+            if (!TextUtils.isEmpty(fileName) && Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                File packageRootDir = mApp.getExternalFilesDir(null);
+                if (packageRootDir != null) {
+                    if (dirName != null) {
+                        File dir = new File(packageRootDir, dirName);
+                        if (!dir.exists()) {
+                            boolean result = dir.mkdir();
+                            if (result) {
+                                return new File(dir, fileName);
+                            }
+                        } else {
+                            return new File(dir, fileName);
+                        }
+                    } else {
+                        return new File(packageRootDir, fileName);
                     }
                 }
             }
+        } catch (Exception e) {
+
         }
         return null;
     }
@@ -195,6 +237,7 @@ public final class SentryLog {
     /**
      * Caller must pass application context here.
      * Call this method in a ContentProvider is recommended.
+     *
      * @param application
      */
     public static void setContext(Application application) {

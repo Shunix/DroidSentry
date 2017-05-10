@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
 final class ActivityMonitorCompat extends BaseActivityMonitor {
     private Instrumentation mOriginalInstrumentation;
 
-    class DroidSentryInstrumentation extends Instrumentation {
+    private class DroidSentryInstrumentation extends Instrumentation {
         @Override
         public void callActivityOnDestroy(Activity activity) {
             super.callActivityOnDestroy(activity);
