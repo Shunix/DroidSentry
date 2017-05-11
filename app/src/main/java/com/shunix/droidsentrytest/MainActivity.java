@@ -13,20 +13,5 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        for (int i = 0; i < 100; ++i) {
-            SentryLog.log(MainActivity.class.getSimpleName(), SentryLog.WARNING, "红红火火恍恍惚惚" + i);
-        }
-//        final Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    Thread.sleep(1000);
-//                } catch (Exception e) {
-//
-//                }
-//                handler.postDelayed(this, 2000);
-//            }
-//        }, 2000);
     }
 }

@@ -11,10 +11,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <provider
-            android:authorities="droidsentry.init_provider"
-            android:name=".provider.InitProvider"
-            android:exported="false"/>
     </application>
 
 </manifest>

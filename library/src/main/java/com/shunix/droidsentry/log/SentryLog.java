@@ -88,6 +88,9 @@ public final class SentryLog {
     }
 
     private static void syncLog() {
+        if (mLogs.isEmpty()) {
+            return;
+        }
         final LinkedHashMap<Integer, String> mCache = new LinkedHashMap<>(mLogs);
         mLogs.clear();
         mLogWriterExecutor.execute(new Runnable() {
