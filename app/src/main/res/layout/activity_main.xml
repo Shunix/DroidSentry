@@ -8,6 +8,20 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.shunix.droidsentrytest.MainActivity">
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Hello World!" />
+    <Button
+        android:text="@string/block_main_thread"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
+        android:id="@+id/blockBtn" />
+
+    <Button
+        android:text="@string/cause_activity_leak"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_centerVertical="true"
+        android:layout_alignEnd="@id/blockBtn"
+        android:id="@+id/leakBtn" />
 </RelativeLayout>
