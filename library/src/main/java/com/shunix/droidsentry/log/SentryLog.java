@@ -4,6 +4,8 @@ package com.shunix.droidsentry.log;
 import android.app.Application;
 import android.os.Debug;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -33,6 +35,8 @@ public final class SentryLog {
     public final static int WARNING = 2;
     public final static int ERROR = 3;
     private final static int MAX_LOG_ITEM = 500;
+    private final static int SYNC_INTERVAL = 30 * 1000;
+    private final static String TAG = "SentryLog";
     private final static String STACKTRACE_FILE_DIRECTORY = "stacktraces/";
     private final static String STACKTRACE_FILENAME_PATTERN = "stacktraces-%1$ty.%1$tm.%1$te-%1$tk.%1$tM.%1$tS.log";
     private final static String DUMP_FILE_DIRECTORY = "heapdump/";
@@ -51,13 +55,20 @@ public final class SentryLog {
         mDumpExecutor = Executors.newSingleThreadExecutor();
         mLogWriterExecutor = Executors.newSingleThreadExecutor();
         mLogs = Collections.synchronizedMap(new LinkedHashMap<Integer, String>());
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+        mFormatter = SimpleDateFormat.getDateInstance();
+        schedulePeriodicSync();
+    }
+
+    private static void schedulePeriodicSync() {
+        Looper looper = Looper.getMainLooper();
+        final Handler handler = new Handler(looper);
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 syncLog();
+                handler.postDelayed(this, SYNC_INTERVAL);
             }
-        }));
-        mFormatter = SimpleDateFormat.getDateInstance();
+        }, SYNC_INTERVAL);
     }
 
     /**
@@ -82,6 +93,7 @@ public final class SentryLog {
         mLogWriterExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                SentryLog.log(TAG, SentryLog.INFO, "Sync logs to disk " + mCache.size());
                 writeLogsToFile(mCache);
             }
         });
@@ -149,6 +161,7 @@ public final class SentryLog {
                                 bufferedWriter.newLine();
                             }
                             bufferedWriter.flush();
+                            SentryLog.log(TAG, SentryLog.INFO, "Write stacktraces to file " + stackTracesFile.getAbsolutePath());
                         } catch (IOException e) {
 
                         } finally {
@@ -226,6 +239,7 @@ public final class SentryLog {
                 try {
                     String dumpFilePath = getDumpFilePath();
                     if (dumpFilePath != null) {
+                        SentryLog.log(TAG, SentryLog.INFO, "Dump hprof file at " + dumpFilePath);
                         Debug.dumpHprofData(dumpFilePath);
                     }
                 } catch (Exception e) {
@@ -245,6 +259,7 @@ public final class SentryLog {
         mApp = application;
     }
 
+    @SuppressWarnings("unused")
     public static void onDestroy() {
         mStackTracePersistExecutor.shutdown();
         mDumpExecutor.shutdown();

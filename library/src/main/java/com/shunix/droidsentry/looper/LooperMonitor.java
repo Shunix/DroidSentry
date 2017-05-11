@@ -2,13 +2,16 @@ package com.shunix.droidsentry.looper;
 
 import android.os.Looper;
 
+import com.shunix.droidsentry.log.SentryLog;
+
 /**
  * @author shunix
  * @since 2017/3/7
  */
 
 public final class LooperMonitor {
-    public final static long DEFAULT_INTERVAL_THRESHOLD = 500;
+    private final static String TAG = "LooperMonitor";
+    private final static long DEFAULT_INTERVAL_THRESHOLD = 500;
     private static ThreadLocal<LooperMonitor> sInstance = new ThreadLocal<>();
 
     private LooperMonitor(long intervalThreshold) {
@@ -30,5 +33,6 @@ public final class LooperMonitor {
         if (sInstance.get() == null) {
             sInstance.set(new LooperMonitor(intervalThreshold));
         }
+        SentryLog.log(TAG, SentryLog.INFO, "Init LooperMonitor");
     }
 }

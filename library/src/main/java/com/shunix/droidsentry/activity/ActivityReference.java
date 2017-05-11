@@ -20,11 +20,11 @@ final class ActivityReference extends WeakReference<Activity> {
             this.mIdentity = identity;
         }
 
-        public String getActivityName() {
+        String getActivityName() {
             return mActivityName;
         }
 
-        public String getIdentity() {
+        String getIdentity() {
             return mIdentity;
         }
     }
@@ -37,6 +37,10 @@ final class ActivityReference extends WeakReference<Activity> {
             throw new IllegalArgumentException("Referent and ReferenceQueue cannot be empty");
         }
         mKey = key;
+    }
+
+    ActivityKey getKey() {
+        return mKey;
     }
 
     @Override

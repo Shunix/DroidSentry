@@ -56,7 +56,10 @@ abstract class BaseActivityMonitor {
     }
 
     private void reportLeakedActivity() {
-        if (!Debug.isDebuggerConnected()) {
+        if (Debug.isDebuggerConnected()) {
+            SentryLog.log(ActivityMonitor.TAG, SentryLog.INFO, "Debugger connected, abort heap dump");
+        } else {
+            SentryLog.log(ActivityMonitor.TAG, SentryLog.INFO, "Request heap dump");
             SentryLog.requestHeapDump();
         }
     }
@@ -76,6 +79,12 @@ abstract class BaseActivityMonitor {
                 waitForEnqueue();
                 removeGarbagedActivity();
                 if (!mActivityReferenceSet.isEmpty()) {
+                    ActivityReference[] array = new ActivityReference[mActivityReferenceSet.size()];
+                    mActivityReferenceSet.toArray(array);
+                    for (ActivityReference reference : array) {
+                        SentryLog.log(ActivityMonitor.TAG, SentryLog.WARNING,
+                                "Leaked Activity " + reference.getKey().getActivityName() + "@" + reference.getKey().getIdentity());
+                    }
                     mActivityReferenceSet.clear();
                     reportLeakedActivity();
                 }

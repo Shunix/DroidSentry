@@ -5,6 +5,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Printer;
 
+import com.shunix.droidsentry.log.SentryLog;
+
 /**
  * @author shunix
  * @since 2017/3/7
@@ -28,6 +30,7 @@ final class LooperMonitorPrinter implements Printer {
         mCollectorRunnable = new Runnable() {
             @Override
             public void run() {
+                SentryLog.log("LooperMonitor", SentryLog.WARNING, "Jank detected, collecting stacktraces");
                 mCollector.collect();
             }
         };
