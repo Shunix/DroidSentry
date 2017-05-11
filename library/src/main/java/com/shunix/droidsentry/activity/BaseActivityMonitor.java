@@ -42,7 +42,9 @@ abstract class BaseActivityMonitor {
          * daemon to move references to the appropriate queues.
          */
         try {
+            Runtime.getRuntime().gc();
             Thread.sleep(100);
+            System.runFinalization();
         } catch (InterruptedException e) {
             throw new AssertionError();
         }

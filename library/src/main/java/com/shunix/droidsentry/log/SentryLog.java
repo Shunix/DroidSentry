@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -83,6 +84,7 @@ public final class SentryLog {
             syncLog();
         }
         String logMsg = String.format(LOG_ITEM_PATTERN, getDisplayTime(), tag, level, msg);
+        Log.d(TAG, logMsg);
         int hashCode = logMsg.hashCode();
         mLogs.put(hashCode, logMsg);
     }
@@ -96,7 +98,6 @@ public final class SentryLog {
         mLogWriterExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                SentryLog.log(TAG, SentryLog.INFO, "Sync logs to disk " + mCache.size());
                 writeLogsToFile(mCache);
             }
         });
