@@ -19,6 +19,7 @@ final class ActivityMonitorCompat extends BaseActivityMonitor {
         @Override
         public void callActivityOnDestroy(Activity activity) {
             super.callActivityOnDestroy(activity);
+            checkLeakedActivity(activity);
         }
     }
 

@@ -3,6 +3,10 @@ package com.shunix.droidsentry.activity;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Debug;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.MessageQueue;
 
 import com.shunix.droidsentry.log.SentryLog;
 
@@ -19,13 +23,14 @@ import java.util.concurrent.Executors;
 
 abstract class BaseActivityMonitor {
     private ReferenceQueue<Activity> mReferenceQueue;
-    private ExecutorService mExecutorService;
     private Set<ActivityReference> mActivityReferenceSet;
+    private HandlerThread handlerThread;
 
     BaseActivityMonitor() {
         mReferenceQueue = new ReferenceQueue<>();
-        mExecutorService = Executors.newSingleThreadExecutor();
         mActivityReferenceSet = new CopyOnWriteArraySet<>();
+        handlerThread = new HandlerThread(ActivityMonitor.TAG);
+        handlerThread.start();
     }
 
     private ActivityReference enqueueActivityReference(Activity activity) {
@@ -52,7 +57,7 @@ abstract class BaseActivityMonitor {
 
     private void removeGarbagedActivity() {
         ActivityReference activityReference;
-        while((activityReference = (ActivityReference) mReferenceQueue.poll()) != null) {
+        while ((activityReference = (ActivityReference) mReferenceQueue.poll()) != null) {
             mActivityReferenceSet.remove(activityReference);
         }
     }
@@ -69,28 +74,36 @@ abstract class BaseActivityMonitor {
     abstract void monitor(Application application);
 
     protected void stop(Application application) {
-        mExecutorService.shutdown();
         mActivityReferenceSet.clear();
     }
 
     void checkLeakedActivity(final Activity activity) {
-        mExecutorService.execute(new Runnable() {
+        SentryLog.log(ActivityMonitor.TAG, SentryLog.INFO, "checkLeakedActivity");
+        enqueueActivityReference(activity);
+        Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
             @Override
-            public void run() {
-                enqueueActivityReference(activity);
-                waitForEnqueue();
-                removeGarbagedActivity();
-                if (!mActivityReferenceSet.isEmpty()) {
-                    ActivityReference[] array = new ActivityReference[mActivityReferenceSet.size()];
-                    mActivityReferenceSet.toArray(array);
-                    for (ActivityReference reference : array) {
-                        SentryLog.log(ActivityMonitor.TAG, SentryLog.WARNING,
-                                "Leaked Activity " + reference.getKey().getActivityName() + "@" + reference.getKey().getIdentity());
+            public boolean queueIdle() {
+                Handler handler = new Handler(handlerThread.getLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        waitForEnqueue();
+                        removeGarbagedActivity();
+                        if (!mActivityReferenceSet.isEmpty()) {
+                            ActivityReference[] array = new ActivityReference[mActivityReferenceSet.size()];
+                            mActivityReferenceSet.toArray(array);
+                            for (ActivityReference reference : array) {
+                                SentryLog.log(ActivityMonitor.TAG, SentryLog.WARNING,
+                                        "Leaked Activity " + reference.getKey().getActivityName() + "@" + reference.getKey().getIdentity());
+                            }
+                            mActivityReferenceSet.clear();
+                            reportLeakedActivity();
+                        }
                     }
-                    mActivityReferenceSet.clear();
-                    reportLeakedActivity();
-                }
+                }, 5000);
+                return false;
             }
         });
     }
+
 }
