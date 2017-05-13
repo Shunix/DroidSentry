@@ -21,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 abstract class BaseActivityMonitor {
     private final static String WORKER_THREAD_NAME = "ActivityMonitor-Worker";
+    private final static int CHECK_LEAK_INTERVAL = 5000;
     private ReferenceQueue<Activity> mReferenceQueue;
     private Set<ActivityReference> mActivityReferenceSet;
 
@@ -100,7 +101,7 @@ abstract class BaseActivityMonitor {
                             reportLeakedActivity();
                         }
                     }
-                }, 5000);
+                }, CHECK_LEAK_INTERVAL);
                 return false;
             }
         });
