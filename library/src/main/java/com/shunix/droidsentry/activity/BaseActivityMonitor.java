@@ -13,8 +13,6 @@ import com.shunix.droidsentry.log.SentryLog;
 import java.lang.ref.ReferenceQueue;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author shunix
@@ -22,18 +20,19 @@ import java.util.concurrent.Executors;
  */
 
 abstract class BaseActivityMonitor {
+    private final static String WORKER_THREAD_NAME = "ActivityMonitor-Worker";
     private ReferenceQueue<Activity> mReferenceQueue;
     private Set<ActivityReference> mActivityReferenceSet;
-    private HandlerThread handlerThread;
 
     BaseActivityMonitor() {
         mReferenceQueue = new ReferenceQueue<>();
         mActivityReferenceSet = new CopyOnWriteArraySet<>();
-        handlerThread = new HandlerThread(ActivityMonitor.TAG);
-        handlerThread.start();
+        mWorkerThread = new HandlerThread(WORKER_THREAD_NAME);
+        mWorkerThread.start();
     }
+    private HandlerThread mWorkerThread;
 
-    private ActivityReference enqueueActivityReference(Activity activity) {
+    private ActivityReference createActivityReference(Activity activity) {
         String activityIdentity = String.valueOf(System.identityHashCode(activity));
         ActivityReference.ActivityKey activityKey = new ActivityReference.ActivityKey(activity.getClass().getName(), activityIdentity);
         ActivityReference activityReference = new ActivityReference(activityKey, activity, mReferenceQueue);
@@ -41,21 +40,21 @@ abstract class BaseActivityMonitor {
         return activityReference;
     }
 
-    private void waitForEnqueue() {
+    private void forceGc() {
+        Runtime.getRuntime().gc();
         /*
          * Hack. We don't have a programmatic way to wait for the reference queue
          * daemon to move references to the appropriate queues.
          */
         try {
-            Runtime.getRuntime().gc();
             Thread.sleep(100);
-            System.runFinalization();
         } catch (InterruptedException e) {
             throw new AssertionError();
         }
+        System.runFinalization();
     }
 
-    private void removeGarbagedActivity() {
+    private void removeGarbageCollectedActivity() {
         ActivityReference activityReference;
         while ((activityReference = (ActivityReference) mReferenceQueue.poll()) != null) {
             mActivityReferenceSet.remove(activityReference);
@@ -75,20 +74,21 @@ abstract class BaseActivityMonitor {
 
     protected void stop(Application application) {
         mActivityReferenceSet.clear();
+        mWorkerThread.quit();
     }
 
     void checkLeakedActivity(final Activity activity) {
         SentryLog.log(ActivityMonitor.TAG, SentryLog.INFO, "checkLeakedActivity");
-        enqueueActivityReference(activity);
+        createActivityReference(activity);
         Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
             @Override
             public boolean queueIdle() {
-                Handler handler = new Handler(handlerThread.getLooper());
+                Handler handler = new Handler(mWorkerThread.getLooper());
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        waitForEnqueue();
-                        removeGarbagedActivity();
+                        forceGc();
+                        removeGarbageCollectedActivity();
                         if (!mActivityReferenceSet.isEmpty()) {
                             ActivityReference[] array = new ActivityReference[mActivityReferenceSet.size()];
                             mActivityReferenceSet.toArray(array);
