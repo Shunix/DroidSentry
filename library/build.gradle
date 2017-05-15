@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 23
@@ -8,7 +9,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "0.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -17,6 +18,32 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+bintray {
+    project.version = "0.1.1"
+    Properties properties = new Properties()
+    boolean isLocal = false;
+    if (project.rootProject.file('local.properties').exists()) {
+        isLocal = true;
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    }
+    user = isLocal ? properties.getProperty("bintray.user") : System.getenv("bintray.user")
+    key = isLocal ? properties.getProperty("bintray.apikey") : System.getenv("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = 'DroidSentry'
+        userOrg = user
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/Shunix/DroidSentry.git'
+        version {
+            name = '0.1.1'
+            desc = 'Performance Monitor for Android'
+            released  = new Date()
+            vcsTag = '0.1.1'
         }
     }
 }
