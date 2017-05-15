@@ -17,7 +17,6 @@ import com.shunix.droidsentry.looper.LooperMonitor;
  */
 
 public final class InitProvider extends ContentProvider {
-    public static final String AUTHORITY = "droidsentry.init_provider";
     @Nullable
     @Override
     public String getType(Uri uri) {

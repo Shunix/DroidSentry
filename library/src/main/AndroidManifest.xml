@@ -6,7 +6,7 @@
     <application android:allowBackup="true" android:label="@string/app_name"
         android:supportsRtl="true">
         <provider
-            android:authorities="droidsentry.init_provider"
+            android:authorities="${applicationId}.droidsentry.init_provider"
             android:name=".provider.InitProvider"
             android:exported="false"/>
     </application>
