@@ -1,4 +1,8 @@
+group = 'com.shunix.droidsentry'
+version = '0.1.1'
+
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
 android {
@@ -22,8 +26,10 @@ android {
     }
 }
 
+def siteUrl = 'https://github.com/Shunix/DroidSentry'
+def gitUrl = 'https://github.com/Shunix/DroidSentry.git'
+
 bintray {
-    project.version = "0.1.1"
     Properties properties = new Properties()
     boolean isLocal = false;
     if (project.rootProject.file('local.properties').exists()) {
@@ -32,21 +38,52 @@ bintray {
     }
     user = isLocal ? properties.getProperty("bintray.user") : System.getenv("bintray.user")
     key = isLocal ? properties.getProperty("bintray.apikey") : System.getenv("bintray.apikey")
-    configurations = ['archives']
+
+    configurations = ['archives'] //When uploading configuration files
     pkg {
         repo = 'maven'
-        name = 'DroidSentry'
-        userOrg = user
+        name = project.name
+        desc = 'Performance Monitor for Android'
+        websiteUrl = siteUrl
+        issueTrackerUrl = 'https://github.com/Shunix/DroidSentry/issues'
+        vcsUrl = gitUrl
         licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/Shunix/DroidSentry.git'
-        version {
-            name = '0.1.1'
-            desc = 'Performance Monitor for Android'
-            released  = new Date()
-            vcsTag = '0.1.1'
+        labels = ['aar', 'android', 'example']
+        publicDownloadNumbers = true
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                name 'Performance Monitor for Android'
+                url siteUrl
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'shunix'
+                        name 'Shunix'
+                        email 'admin@shunix.com'
+                    }
+                }
+                scm {
+                    connection 'https://github.com/Shunix/DroidSentry.git'
+                    developerConnection 'https://github.com/Shunix/DroidSentry.git'
+                    url siteUrl
+
+                }
+            }
         }
     }
 }
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
