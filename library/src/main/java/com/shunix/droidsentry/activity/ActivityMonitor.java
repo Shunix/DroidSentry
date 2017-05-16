@@ -2,6 +2,7 @@ package com.shunix.droidsentry.activity;
 
 import android.app.Application;
 import android.os.Build;
+import android.support.annotation.NonNull;
 
 import com.shunix.droidsentry.log.SentryLog;
 
@@ -34,12 +35,12 @@ public final class ActivityMonitor {
         }
     }
 
-    public void monitor(Application application) {
+    public void monitor(@NonNull Application application) {
         mMonitor.monitor(application);
         SentryLog.log(TAG, SentryLog.INFO, "monitor() called " + (application == null));
     }
 
-    public void stop(Application application) {
+    public void stop(@NonNull Application application) {
         mMonitor.stop(application);
         SentryLog.log(TAG, SentryLog.INFO, "stop() called " + (application == null));
     }

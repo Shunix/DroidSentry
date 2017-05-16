@@ -1,6 +1,8 @@
 package com.shunix.droidsentry.activity;
 
 import android.app.Activity;
+import android.support.annotation.CheckResult;
+import android.support.annotation.NonNull;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -15,7 +17,10 @@ final class ActivityReference extends WeakReference<Activity> {
         private String mActivityName;
         private String mIdentity;
 
-        ActivityKey(String activityName, String identity) {
+        ActivityKey(@NonNull String activityName, @NonNull String identity) {
+            if (activityName == null || identity == null) {
+                throw new IllegalArgumentException("ActivityName and Identity cannot be null");
+            }
             this.mActivityName = activityName;
             this.mIdentity = identity;
         }
@@ -31,10 +36,11 @@ final class ActivityReference extends WeakReference<Activity> {
 
     private ActivityKey mKey;
 
-    ActivityReference(ActivityKey key, Activity referent, ReferenceQueue queue) {
+    @SuppressWarnings("unchecked")
+    ActivityReference(@NonNull ActivityKey key, @NonNull Activity referent, @NonNull ReferenceQueue queue) {
         super(referent, queue);
-        if (referent == null || queue == null) {
-            throw new IllegalArgumentException("Referent and ReferenceQueue cannot be empty");
+        if (key == null || referent == null || queue == null) {
+            throw new IllegalArgumentException("Referent and ReferenceQueue cannot be null");
         }
         mKey = key;
     }

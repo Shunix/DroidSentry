@@ -6,7 +6,10 @@ import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.CheckResult;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -103,7 +106,8 @@ public final class SentryLog {
         });
     }
 
-    private static void writeLogsToFile(Map<Integer, String> map) {
+    @WorkerThread
+    private static void writeLogsToFile(@NonNull Map<Integer, String> map) {
         File logFile = getFileWithCheck(null, LOG_FILENAME);
         if (logFile != null) {
             if (!logFile.exists()) {
@@ -186,12 +190,14 @@ public final class SentryLog {
         });
     }
 
+    @CheckResult
     @Nullable
     private static File getStackTracesFile() {
         String fileName = String.format(Locale.getDefault(), STACKTRACE_FILENAME_PATTERN, Calendar.getInstance());
         return getFileWithCheck(STACKTRACE_FILE_DIRECTORY, fileName);
     }
 
+    @CheckResult
     @Nullable
     private static String getDumpFilePath() {
         String fileName = String.format(Locale.getDefault(), DUMP_FILENAME_PATTERN, Calendar.getInstance());
@@ -209,8 +215,9 @@ public final class SentryLog {
      * @param fileName
      * @return
      */
+    @CheckResult
     @Nullable
-    private static File getFileWithCheck(@Nullable String dirName, String fileName) {
+    private static File getFileWithCheck(@Nullable String dirName, @NonNull String fileName) {
         try {
             if (!TextUtils.isEmpty(fileName) && Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
                 File packageRootDir = mApp.getExternalFilesDir(null);
@@ -259,7 +266,7 @@ public final class SentryLog {
      *
      * @param application
      */
-    public static void setContext(Application application) {
+    public static void setContext(@NonNull Application application) {
         mApp = application;
     }
 

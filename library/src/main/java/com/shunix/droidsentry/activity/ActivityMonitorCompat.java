@@ -3,6 +3,8 @@ package com.shunix.droidsentry.activity;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.support.annotation.CallSuper;
+import android.support.annotation.NonNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -23,14 +25,15 @@ final class ActivityMonitorCompat extends BaseActivityMonitor {
         }
     }
 
+    @CallSuper
     @Override
-    protected void stop(Application application) {
+    protected void stop(@NonNull Application application) {
         super.stop(application);
         restoreInstrumentation();
     }
 
     @Override
-    protected void monitor(Application application) {
+    protected void monitor(@NonNull Application application) {
         // Save original instrumentation first
         saveOriginalInstrumentation();
         // Replace instrumentation with custom one

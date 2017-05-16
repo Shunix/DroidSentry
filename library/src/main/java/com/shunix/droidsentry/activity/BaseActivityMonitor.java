@@ -7,6 +7,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.MessageQueue;
+import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 
 import com.shunix.droidsentry.log.SentryLog;
 
@@ -33,7 +35,7 @@ abstract class BaseActivityMonitor {
     }
     private HandlerThread mWorkerThread;
 
-    private ActivityReference createActivityReference(Activity activity) {
+    private ActivityReference createActivityReference(@NonNull Activity activity) {
         String activityIdentity = String.valueOf(System.identityHashCode(activity));
         ActivityReference.ActivityKey activityKey = new ActivityReference.ActivityKey(activity.getClass().getName(), activityIdentity);
         ActivityReference activityReference = new ActivityReference(activityKey, activity, mReferenceQueue);
@@ -41,6 +43,7 @@ abstract class BaseActivityMonitor {
         return activityReference;
     }
 
+    @WorkerThread
     private void forceGc() {
         Runtime.getRuntime().gc();
         /*
@@ -71,14 +74,14 @@ abstract class BaseActivityMonitor {
         }
     }
 
-    abstract void monitor(Application application);
+    abstract void monitor(@NonNull Application application);
 
-    protected void stop(Application application) {
+    protected void stop(@NonNull Application application) {
         mActivityReferenceSet.clear();
         mWorkerThread.quit();
     }
 
-    void checkLeakedActivity(final Activity activity) {
+    void checkLeakedActivity(@NonNull final Activity activity) {
         SentryLog.log(ActivityMonitor.TAG, SentryLog.INFO, "checkLeakedActivity");
         createActivityReference(activity);
         Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {

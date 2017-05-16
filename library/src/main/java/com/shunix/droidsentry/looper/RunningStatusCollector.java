@@ -1,6 +1,9 @@
 package com.shunix.droidsentry.looper;
 
 import android.os.Looper;
+import android.support.annotation.CheckResult;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.shunix.droidsentry.log.SentryLog;
 
@@ -15,7 +18,7 @@ final class RunningStatusCollector {
     // We only monitor main thread currently, so WeakReference is not required here.
     private Looper mMonitoredLooper;
 
-    RunningStatusCollector(Looper looper) {
+    RunningStatusCollector(@NonNull Looper looper) {
         if (looper == null) {
             throw new RuntimeException("looper cannot be null");
         }
@@ -26,6 +29,8 @@ final class RunningStatusCollector {
         persistStackTrace(collectStackTrace());
     }
 
+    @CheckResult
+    @Nullable
     private StackTraceElement[] collectStackTrace() {
         Map<Thread, StackTraceElement[]> stackTraceMap = Thread.getAllStackTraces();
         if (stackTraceMap != null && stackTraceMap.size() > 0) {

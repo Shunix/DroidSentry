@@ -1,8 +1,11 @@
 package com.shunix.droidsentry.activity;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import android.support.annotation.CallSuper;
+import android.support.annotation.NonNull;
 
 /**
  * @author shunix
@@ -10,6 +13,7 @@ import android.os.Bundle;
  */
 
 final class ActivityMonitorV14 extends BaseActivityMonitor {
+    @TargetApi(14)
     private final class ActivityLifecycleMonitor implements Application.ActivityLifecycleCallbacks {
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -52,14 +56,17 @@ final class ActivityMonitorV14 extends BaseActivityMonitor {
         mCallbacks = new ActivityLifecycleMonitor();
     }
 
+    @CallSuper
     @Override
-    protected void stop(Application application) {
+    @TargetApi(14)
+    protected void stop(@NonNull Application application) {
         super.stop(application);
         application.unregisterActivityLifecycleCallbacks(mCallbacks);
     }
 
     @Override
-    protected void monitor(Application application) {
+    @TargetApi(14)
+    protected void monitor(@NonNull Application application) {
         application.registerActivityLifecycleCallbacks(mCallbacks);
     }
 }
